@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Algoritma Genetika – Rute Wisata Jogja</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+:root{
+  --bg:#f4f6fa; --surface:#ffffff; --ink:#151a33; --muted:#5d6482; --line:#dfe3ee;
+  --brand:#232d6b; --brand-2:#3a4aa8; --teal:#0e8a8c; --amber:#d9930d; --danger:#b3261e; --good:#12713f;
+  --chip:#eaeefb; --radius:10px;
+  --font:'Plus Jakarta Sans',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#0f1226; --surface:#181c38; --ink:#eceffa; --muted:#a2a9c8; --line:#2b3158;
+    --brand:#9db0ff; --brand-2:#7f95ff; --teal:#43c3c5; --amber:#f0b64a; --danger:#ff8a80; --good:#6fdc9d; --chip:#242a52;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);line-height:1.55;font-size:15px}
+a{color:var(--brand-2)}
+.wrap{max-width:1180px;margin:0 auto;padding:0 18px}
+header.top{background:var(--brand);color:#fff;padding:34px 0 30px}
+@media (prefers-color-scheme:dark){header.top{background:#1a1f45;color:#eceffa}}
+header.top h1{margin:0 0 8px;font-size:clamp(24px,4vw,36px);font-weight:800;letter-spacing:-.02em;line-height:1.15}
+header.top p{margin:0;max-width:72ch;opacity:.9}
+.badge{display:inline-flex;gap:8px;align-items:center;margin-top:16px;font-size:13px;background:rgba(255,255,255,.12);padding:6px 12px;border-radius:999px}
+.dot{width:9px;height:9px;border-radius:50%;background:#aab;display:inline-block}
+.dot.ok{background:#4cd08b}.dot.bad{background:#ffb454}
+
+main{padding:24px 0 60px;display:grid;gap:20px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:20px}
+.card h2{margin:0 0 4px;font-size:19px;font-weight:700;letter-spacing:-.01em}
+.card h3{margin:22px 0 8px;font-size:16px;font-weight:700}
+.lead{margin:0 0 16px;color:var(--muted);max-width:78ch}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media (max-width:760px){.grid2{grid-template-columns:1fr}}
+.col h3:first-child{margin-top:0}
+.search{display:flex;gap:6px}
+.search input[type=text]{flex:1;min-width:0;padding:9px 11px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit}
+button,.btn{font:inherit;cursor:pointer}
+.btn{display:inline-block;background:var(--brand-2);color:#fff;border:0;border-radius:8px;padding:9px 15px;font-weight:600;text-decoration:none}
+.btn:hover{filter:brightness(1.08)}
+.btn:disabled{opacity:.55;cursor:wait}
+.btn.big{padding:13px 24px;font-size:16px;background:var(--teal)}
+@media (prefers-color-scheme:dark){.btn{color:#0f1226}.btn.big{color:#0f1226}}
+.btn.ghost{background:transparent;color:var(--brand-2);border:1px solid var(--line)}
+.btn.sm{padding:4px 10px;font-size:12.5px}
+:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+.results{list-style:none;margin:6px 0 0;padding:0;display:grid;gap:4px}
+.results button{width:100%;text-align:left;background:var(--chip);border:0;border-radius:8px;padding:8px 10px;color:var(--ink)}
+.results button:hover{outline:2px solid var(--brand-2)}
+.results small{display:block;color:var(--muted)}
+.muted{color:var(--muted);font-size:13px}
+.list{max-height:300px;overflow:auto;margin-top:10px;border:1px solid var(--line);border-radius:8px}
+.drow{display:flex;flex-wrap:wrap;align-items:center;border-bottom:1px solid var(--line)}
+.drow:last-child{border-bottom:0}
+.opt{display:flex;gap:10px;align-items:flex-start;padding:8px 11px;cursor:pointer;flex:1;min-width:0}
+.opt:hover{background:var(--chip)}
+.opt input{margin-top:5px;accent-color:var(--brand-2)}
+.opt small{display:block;color:var(--muted);font-size:12px}
+.opt.off span{opacity:.45}
+.opt.off{cursor:not-allowed}
+.del{background:transparent;border:1px solid var(--line);color:var(--danger);border-radius:6px;padding:3px 9px;font-size:12px;margin-right:8px}
+.del:hover{background:color-mix(in srgb,var(--danger) 14%,transparent)}
+.tw{flex-basis:100%;display:flex;flex-wrap:wrap;gap:6px 12px;padding:0 11px 9px 40px;font-size:12.5px;color:var(--muted)}
+.tw label{display:flex;align-items:center;gap:5px}
+.tw input{padding:3px 5px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit;font-size:12.5px}
+.tw input[type=number]{width:62px}
+.sel{margin-top:10px;padding:10px 12px;background:var(--chip);border-radius:8px;font-size:14px}
+.sel ol{margin:4px 0 0;padding-left:20px}
+.sel li{margin-bottom:3px}
+.coord{color:var(--muted);font-size:13px;font-variant-numeric:tabular-nums}
+.tlabel{display:flex;align-items:center;gap:10px;margin-top:12px;font-weight:600}
+.tlabel input{padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit}
+.toolbar{display:flex;gap:8px;margin:0 0 12px;flex-wrap:wrap}
+.params{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:14px 0 18px}
+.params label{display:grid;gap:4px;font-size:13px;font-weight:600}
+.params input{padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit}
+.status{margin-left:12px;color:var(--muted)}
+.err,.bad{color:var(--danger);font-weight:600}
+.ok{color:var(--good);font-weight:600}
+
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin:12px 0}
+.stat{background:var(--chip);border-radius:8px;padding:12px 14px}
+.stat b{display:block;font-size:21px;font-variant-numeric:tabular-nums}
+.stat span{font-size:13px;color:var(--muted)}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;width:100%;font-size:13.5px;font-variant-numeric:tabular-nums}
+th,td{padding:7px 10px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
+th{background:var(--chip);font-weight:700;position:sticky;top:0}
+tr:last-child td{border-bottom:0}
+td.num,th.num{text-align:right}
+tr.best td{background:color-mix(in srgb,var(--amber) 18%,transparent);font-weight:600}
+tr.total td{font-weight:700;background:var(--chip)}
+.route{white-space:normal;min-width:260px}
+.pill{display:inline-block;background:var(--chip);border-radius:6px;padding:1px 7px;margin:1px 0;font-weight:600;font-size:12.5px}
+.pill.s{background:var(--teal);color:#fff}
+.pill.e{background:var(--amber);color:#1b1500}
+.arrow{color:var(--muted);margin:0 2px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin:6px 0 12px;font-size:13px}
+details{margin-top:10px;border:1px solid var(--line);border-radius:8px;padding:8px 12px}
+summary{cursor:pointer;font-weight:600}
+details .tablewrap{margin-top:10px}
+canvas{width:100%;height:260px;display:block}
+#map{height:500px;border-radius:8px;border:1px solid var(--line);background:var(--chip)}
+.note{background:color-mix(in srgb,var(--amber) 15%,transparent);border-left:4px solid var(--amber);padding:10px 14px;border-radius:6px;font-size:14px;margin:12px 0}
+.note.good{background:color-mix(in srgb,var(--good) 14%,transparent);border-left-color:var(--good)}
+.note.warn{background:color-mix(in srgb,var(--danger) 12%,transparent);border-left-color:var(--danger)}
+.pin{background:var(--brand-2);color:#fff;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:13px;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.4)}
+.segpanel{margin-top:14px;border:1px solid var(--line);border-radius:8px;padding:14px 16px;background:var(--bg)}
+.segpanel h3{margin:6px 0 8px}
+.segnav{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.chipbtn{background:var(--chip);color:var(--ink);border:1px solid transparent;border-radius:999px;padding:3px 12px;font-size:13px;font-weight:600}
+.chipbtn.on{border-color:var(--amber);background:color-mix(in srgb,var(--amber) 22%,transparent)}
+.btnrow{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.steps{margin:8px 0 0;padding-left:22px;max-height:320px;overflow:auto}
+.steps li{margin-bottom:4px}
+footer{color:var(--muted);font-size:13px;padding-bottom:40px}
+[hidden]{display:none!important}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <h1>Rute wisata Jogja dengan Algoritma Genetika</h1>
+    <p>Pilih titik awal, jam berangkat, titik akhir, dan tempat yang ingin dikunjungi. Atur jam buka, jam tutup, dan lama singgah tiap tempat. Algoritma genetika akan mencari urutan kunjungan yang biayanya (jarak × waktu tempuh) paling kecil dan tetap memenuhi jam buka-tutup.</p>
+    <div class="badge"><span class="dot" id="gmDot"></span><span id="gmStatus">Memuat Google Maps…</span></div>
+  </div>
+</header>
+
+<div class="wrap">
+<main>
+
+  <!-- 1. Awal & akhir -->
+  <section class="card" id="sec-awal-akhir">
+    <h2>1. Lokasi awal, jam berangkat, dan lokasi akhir</h2>
+    <p class="lead">Pilih satu lokasi awal dan satu lokasi akhir dari daftar, atau cari nama tempat lain (data dari Google Maps; bila tidak tersedia memakai OpenStreetMap). Jika awal dan akhir sama, rutenya menjadi perjalanan pulang-pergi. Tombol “Hapus” membuang lokasi dari daftar.</p>
+    <div class="grid2">
+      <div class="col">
+        <h3>Lokasi awal</h3>
+        <div class="search">
+          <input type="text" id="startSearch" placeholder="Cari tempat, mis. Candi Prambanan" aria-label="Cari lokasi awal">
+          <button class="btn" type="button" id="startSearchBtn">Cari</button>
+        </div>
+        <ul class="results" id="startResults"></ul>
+        <div class="list" id="startList" role="radiogroup" aria-label="Pilihan lokasi awal"></div>
+        <div class="sel" id="startInfo"></div>
+        <label class="tlabel">Berangkat dari lokasi awal pukul <input type="time" id="startTime" value="08:00"></label>
+      </div>
+      <div class="col">
+        <h3>Lokasi akhir</h3>
+        <div class="search">
+          <input type="text" id="endSearch" placeholder="Cari tempat, mis. Bandara Adisutjipto" aria-label="Cari lokasi akhir">
+          <button class="btn" type="button" id="endSearchBtn">Cari</button>
+        </div>
+        <ul class="results" id="endResults"></ul>
+        <div class="list" id="endList" role="radiogroup" aria-label="Pilihan lokasi akhir"></div>
+        <div class="sel" id="endInfo"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. Tujuan -->
+  <section class="card" id="sec-tujuan">
+    <h2>2. Lokasi yang ingin dikunjungi</h2>
+    <p class="lead">Centang minimal 2 dan maksimal 15 tempat. Untuk tiap tempat, atur jam buka, jam tutup, dan lama singgah (menit). Nilai bawaan hanya perkiraan, jadi sesuaikan dengan jadwal terbaru tempatnya. Jam buka-tutup lokasi akhir juga dipertimbangkan, sedangkan lokasi awal dianggap berangkat tepat pada jam yang diisi.</p>
+    <div class="toolbar">
+      <button class="btn ghost sm" type="button" id="resetBtn">Kembalikan daftar bawaan</button>
+    </div>
+    <div class="grid2">
+      <div class="col">
+        <div class="search">
+          <input type="text" id="destSearch" placeholder="Cari tempat tujuan lain" aria-label="Cari lokasi tujuan">
+          <button class="btn" type="button" id="destSearchBtn">Cari</button>
+        </div>
+        <ul class="results" id="destResults"></ul>
+        <div class="list" id="destList" style="max-height:460px"></div>
+      </div>
+      <div class="col">
+        <div class="sel" id="destInfo" style="margin-top:0"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. Parameter & hitung -->
+  <section class="card" id="sec-hitung">
+    <h2>3. Parameter algoritma dan proses</h2>
+    <p class="lead">Matriks jarak dan waktu tempuh diambil dari Google Distance Matrix. Jika tidak bisa, dipakai OSRM (rute jalan berbasis OpenStreetMap), dan terakhir estimasi garis lurus. Biaya tiap ruas = jarak (km) × waktu tempuh (menit). Jika tiba sebelum buka, perjalanan menunggu sampai buka. Jika kunjungan baru selesai setelah jam tutup, rute kena penalti besar sehingga GA cenderung menghindarinya.</p>
+    <div class="params">
+      <label>Ukuran populasi<input type="number" id="pPop" value="50" min="10" max="500"></label>
+      <label>Jumlah generasi<input type="number" id="pGen" value="150" min="10" max="2000"></label>
+      <label>Peluang crossover<input type="number" id="pCx" value="0.85" min="0" max="1" step="0.05"></label>
+      <label>Peluang mutasi<input type="number" id="pMut" value="0.15" min="0" max="1" step="0.01"></label>
+    </div>
+    <button class="btn big" type="button" id="runBtn">Hitung rute terbaik</button>
+    <span class="status" id="runStatus"></span>
+  </section>
+
+  <!-- Hasil -->
+  <div id="output" hidden style="display:grid;gap:20px">
+
+    <section class="card">
+      <h2>Ruang pencarian</h2>
+      <div id="spaceInfo"></div>
+    </section>
+
+    <section class="card">
+      <h2>Matriks jarak, waktu, dan biaya</h2>
+      <p class="lead" id="matrixSource"></p>
+      <div id="matrices"></div>
+    </section>
+
+    <section class="card">
+      <h2>10 populasi awal</h2>
+      <p class="lead">Tiap baris adalah satu kromosom, yaitu satu urutan kunjungan yang dibuat acak. S = lokasi awal, E = lokasi akhir, D1, D2, … = tempat tujuan. Kolom “Selesai” adalah jam tiba di lokasi akhir. “Terlambat” adalah total menit kunjungan yang melewati jam tutup. Biaya total = biaya perjalanan + penalti tunggu + penalti terlambat. Fitness = 1 / biaya total.</p>
+      <div class="legend" id="legend"></div>
+      <div class="tablewrap"><table id="popTable"></table></div>
+    </section>
+
+    <section class="card">
+      <h2>Evolusi antar generasi</h2>
+      <p class="lead">Garis kuning adalah biaya total terbaik tiap generasi, garis abu-abu adalah rata-rata biaya populasi. Semakin turun semakin baik.</p>
+      <canvas id="chart"></canvas>
+      <h3>Riwayat perbaikan solusi terbaik</h3>
+      <div class="tablewrap" style="max-height:320px;overflow:auto"><table id="histTable"></table></div>
+    </section>
+
+    <section class="card">
+      <h2>Solusi akhir</h2>
+      <div class="stats" id="finalStats"></div>
+      <div id="timeNote"></div>
+      <div id="bruteInfo"></div>
+      <h3>Jadwal dan urutan kunjungan</h3>
+      <div class="tablewrap"><table id="finalTable"></table></div>
+    </section>
+
+    <section class="card" id="mapCard">
+      <h2>Peta dan rute</h2>
+      <p class="muted" id="mapNote"></p>
+      <div id="map"></div>
+      <div class="segpanel" id="segPanel" aria-live="polite"></div>
+    </section>
+  </div>
+
+  <footer>
+    <p>Algoritma: seleksi turnamen, order crossover (OX), mutasi swap atau inversi, dan elitisme 2 individu. Penalti terlambat = 5 × rata-rata biaya ruas per menit keterlambatan, penalti tunggu = 0,02 × rata-rata biaya ruas per menit menunggu. Hasil algoritma genetika bersifat heuristik: biasanya sangat dekat dengan optimal, tetapi tidak dijamin selalu optimal.</p>
+  </footer>
+</main>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+/* ============================================================
+   KONFIGURASI
+   ============================================================ */
+const GMAPS_KEY = 'AIzaSyCyWR6qbaOZd2eHxsrkC26eUEeEhKTthjc';
+const MAX_DEST = 15;
+const hm = (h,m=0) => h*60+m;
+
+// open/close dalam menit sejak 00:00 (1440 = 24:00), stay = lama singgah (menit). Nilai hanya perkiraan.
+const LOCATIONS = [
+  {name:'Stasiun Tugu',                 lat:-7.7892, lng:110.3634, open:0,       close:1440,     stay:0},
+  {name:'Stasiun Lempuyangan',          lat:-7.7902, lng:110.3753, open:0,       close:1440,     stay:30},
+  {name:'Malioboro',                    lat:-7.7929, lng:110.3658, open:0,       close:1440,     stay:45},
+  {name:'Taman Pintar',                 lat:-7.8003, lng:110.3669, open:hm(8),   close:hm(15,30),stay:60},
+  {name:'Benteng Vredeburg',            lat:-7.8002, lng:110.3662, open:hm(8,30),close:hm(21),   stay:45},
+  {name:'Museum Jogja Kembali',         lat:-7.7496, lng:110.3687, open:hm(8),   close:hm(16),   stay:45},
+  {name:'Kebun Binatang Gembira Loka',  lat:-7.8057, lng:110.3963, open:hm(8),   close:hm(16),   stay:90},
+  {name:'Keraton Yogyakarta',           lat:-7.8053, lng:110.3642, open:hm(9),   close:hm(14),   stay:60},
+  {name:'Taman Sari',                   lat:-7.8100, lng:110.3594, open:hm(9),   close:hm(15),   stay:45},
+  {name:'Alun-Alun Kidul',              lat:-7.8118, lng:110.3640, open:0,       close:1440,     stay:30},
+  {name:'Tugu Yogyakarta',              lat:-7.7828, lng:110.3671, open:0,       close:1440,     stay:15},
+  {name:'Candi Prambanan',              lat:-7.7520, lng:110.4915, open:hm(6,30),close:hm(17),   stay:120},
+  {name:'Candi Ratu Boko',              lat:-7.7705, lng:110.4895, open:hm(6),   close:hm(17),   stay:90},
+  {name:'HeHa Sky View',                lat:-7.8466, lng:110.4778, open:hm(10),  close:hm(22),   stay:90},
+  {name:'Bukit Mangunan',               lat:-7.9378, lng:110.4256, open:hm(6),   close:hm(18),   stay:60},
+  {name:'Pantai Parangtritis',          lat:-8.0250, lng:110.3290, open:0,       close:1440,     stay:90},
+  {name:'Pantai Indrayanti',            lat:-8.1503, lng:110.6128, open:0,       close:1440,     stay:90},
+  {name:'Bandara Adisutjipto',          lat:-7.7882, lng:110.4317, open:0,       close:1440,     stay:0}
+];
+const DEFAULT_DESTS = ['Stasiun Lempuyangan','Keraton Yogyakarta','Taman Sari','Malioboro','Taman Pintar','Kebun Binatang Gembira Loka'];
+
+/* ============================================================
+   UTILITAS
+   ============================================================ */
+const $ = id => document.getElementById(id);
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const f2 = n => Number(n).toLocaleString('id-ID',{minimumFractionDigits:2,maximumFractionDigits:2});
+const f1 = n => Number(n).toLocaleString('id-ID',{minimumFractionDigits:1,maximumFractionDigits:1});
+const f0 = n => Math.round(n).toLocaleString('id-ID');
+const coord = p => p.lat.toFixed(5) + ', ' + p.lng.toFixed(5);
+function fmtTime(min){
+  if (min < 60) return f1(min) + ' mnt';
+  const t = Math.round(min);
+  return Math.floor(t/60) + ' j ' + String(t%60).padStart(2,'0') + ' mnt';
+}
+function fmtDur(min){           // durasi bulat (menit) untuk waktu tunggu/singgah
+  const t = Math.round(min);
+  if (t<=0) return '0';
+  return t<60 ? t+' mnt' : Math.floor(t/60)+' j '+String(t%60).padStart(2,'0')+' mnt';
+}
+function fmtClock(m){
+  const t=Math.round(m), day=Math.floor(t/1440), r=((t%1440)+1440)%1440;
+  const s=String(Math.floor(r/60)).padStart(2,'0')+':'+String(r%60).padStart(2,'0');
+  return day>0 ? s+' (+'+day+' hr)' : s;
+}
+function fmtWindow(p){
+  if (p.open<=0 && p.close>=1440) return '24 jam';
+  const c = p.close>=1440 ? '24:00' : fmtClock(p.close);
+  return fmtClock(p.open)+'–'+c;
+}
+function toMin(str,isClose){
+  if (!str) return null;
+  const [h,m]=str.split(':').map(Number);
+  if (isNaN(h)||isNaN(m)) return null;
+  let v=h*60+m;
+  if (isClose && v>=1439) v=1440;
+  return v;
+}
+function minToInput(m){
+  if (m>=1440) return '23:59';
+  return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');
+}
+function fmtDist(m){ return m>=1000 ? f2(m/1000)+' km' : Math.round(m)+' m'; }
+function shortName(s){ return String(s).split(',').slice(0,2).join(',').trim(); }
+function shortLabel(name){ const s=shortName(name); return s.length>14 ? s.slice(0,13)+'…' : s; }
+function withTimeout(promise, ms, label){
+  return Promise.race([promise, new Promise((_,rej)=>setTimeout(()=>rej(new Error(label||'timeout')), ms))]);
+}
+function haversine(a,b){
+  const R=6371, toR=Math.PI/180;
+  const dLat=(b.lat-a.lat)*toR, dLng=(b.lng-a.lng)*toR;
+  const x=Math.sin(dLat/2)**2+Math.cos(a.lat*toR)*Math.cos(b.lat*toR)*Math.sin(dLng/2)**2;
+  return 2*R*Math.asin(Math.sqrt(x));
+}
+function estimate(a,b){
+  const dist = haversine(a,b)*1.35;               // faktor kelokan jalan
+  const speed = dist<5 ? 20 : dist<20 ? 30 : 40;  // km/jam rata-rata
+  return {dist, time: dist/speed*60};
+}
+function zeros(n){ return Array.from({length:n},()=>Array(n).fill(0)); }
+function factorial(n){ let r=1n; for(let i=2n;i<=BigInt(n);i++) r*=i; return r; }
+
+/* ============================================================
+   GOOGLE MAPS (dimuat dinamis, dengan cadangan jika gagal)
+   ============================================================ */
+let googleLoaded=false, googleFailed=false;
+function googleOK(){ return googleLoaded && !googleFailed && window.google && google.maps && google.maps.Map; }
+function updateBadge(){
+  const dot=$('gmDot'), txt=$('gmStatus');
+  if (googleOK()){ dot.className='dot ok'; txt.textContent='Google Maps aktif'; }
+  else if (googleFailed){ dot.className='dot bad'; txt.textContent='Google Maps tidak bisa dipakai, memakai OpenStreetMap dan OSRM sebagai cadangan'; }
+  else { dot.className='dot'; txt.textContent='Memuat Google Maps…'; }
+}
+window.onGoogleReady = () => { googleLoaded=true; updateBadge(); };
+window.gm_authFailure = () => {   // dipanggil Google jika key ditolak (referrer/API belum aktif)
+  googleFailed=true; updateBadge();
+  if (mapKind==='google'){
+    mapObj=null; mapKind=null; layers=[]; segObjs=[];
+    const el=$('map'); el.innerHTML=''; el.removeAttribute('style');
+    if (lastDraw) drawRoute(lastDraw.routePts, lastDraw.segInfo);
+  }
+};
+(function loadGoogle(){
+  const s=document.createElement('script');
+  s.src='https://maps.googleapis.com/maps/api/js?key='+GMAPS_KEY+'&callback=onGoogleReady';
+  s.async=true;
+  s.onerror=()=>{ googleFailed=true; updateBadge(); };
+  document.head.appendChild(s);
+  setTimeout(()=>{ if(!googleLoaded){ googleFailed=true; updateBadge(); } }, 9000);
+})();
+
+/* ============================================================
+   DATA LOKASI & PILIHAN
+   ============================================================ */
+const pool = [];
+let nextId = 0;
+const state = {start:null, end:null, dests:new Set()};
+const getLoc = id => pool.find(p=>p.id===id);
+
+function buildPool(){
+  pool.length=0;
+  LOCATIONS.forEach((l,i)=>pool.push({...l,id:'p'+i}));
+  nextId=pool.length;
+  const byName = n => pool.find(p=>p.name===n).id;
+  state.start=byName('Stasiun Tugu');
+  state.end=byName('Stasiun Tugu');
+  state.dests=new Set(DEFAULT_DESTS.map(byName));
+}
+function addToPool(r){
+  const dup = pool.find(p=>Math.abs(p.lat-r.lat)<1e-4 && Math.abs(p.lng-r.lng)<1e-4);
+  if (dup) return dup;
+  const loc = {id:'p'+(nextId++), name:r.name, lat:r.lat, lng:r.lng, custom:true, open:0, close:1440, stay:30};
+  pool.push(loc);
+  return loc;
+}
+function deleteLoc(id){
+  const i=pool.findIndex(p=>p.id===id);
+  if (i<0) return;
+  pool.splice(i,1);
+  state.dests.delete(id);
+  if (state.start===id) state.start=null;
+  if (state.end===id) state.end=null;
+  renderLists();
+}
+
+function renderLists(){
+  const delBtn = p => `<button class="del" type="button" data-del="${p.id}" aria-label="Hapus ${esc(p.name)} dari daftar">Hapus</button>`;
+  ['start','end'].forEach(ctx=>{
+    $(ctx+'List').innerHTML = pool.length ? pool.map(p=>`
+      <div class="drow">
+        <label class="opt">
+          <input type="radio" name="${ctx}" value="${p.id}" ${state[ctx]===p.id?'checked':''}>
+          <span>${esc(p.name)}<small>${coord(p)}</small></span>
+        </label>${delBtn(p)}
+      </div>`).join('') : '<div class="opt muted">Daftar kosong. Cari tempat atau kembalikan daftar bawaan.</div>';
+  });
+  $('destList').innerHTML = pool.length ? pool.map(p=>{
+    const blocked = p.id===state.start || p.id===state.end;
+    return `<div class="drow">
+      <label class="opt ${blocked?'off':''}">
+        <input type="checkbox" value="${p.id}" ${state.dests.has(p.id)?'checked':''} ${blocked?'disabled':''}>
+        <span>${esc(p.name)}<small>${coord(p)}${blocked?' · sudah jadi lokasi awal/akhir':''}</small></span>
+      </label>${delBtn(p)}
+      <div class="tw">
+        <label>Buka <input type="time" data-id="${p.id}" data-f="open" value="${minToInput(p.open)}"></label>
+        <label>Tutup <input type="time" data-id="${p.id}" data-f="close" value="${minToInput(p.close)}"></label>
+        <label>Singgah <input type="number" min="0" max="1000" step="5" data-id="${p.id}" data-f="stay" value="${p.stay}"> mnt</label>
+      </div>
+    </div>`;
+  }).join('') : '<div class="opt muted">Daftar kosong.</div>';
+  renderSummary();
+}
+function renderSummary(){
+  const s=getLoc(state.start), e=getLoc(state.end);
+  $('startInfo').innerHTML = s ? `<strong>${esc(s.name)}</strong><br><span class="coord">${coord(s)}</span>` : 'Belum dipilih';
+  $('endInfo').innerHTML   = e ? `<strong>${esc(e.name)}</strong><br><span class="coord">${coord(e)}</span><br><span class="muted">Buka ${fmtWindow(e)}</span>` : 'Belum dipilih';
+  const ds=[...state.dests].map(getLoc).filter(Boolean);
+  $('destInfo').innerHTML = `<strong>${ds.length} tempat terpilih</strong>` + (ds.length
+    ? '<ol>'+ds.map(d=>`<li>${esc(d.name)}<br><span class="coord">${coord(d)}</span><br><span class="muted">Buka ${fmtWindow(d)} · singgah ${d.stay} mnt</span></li>`).join('')+'</ol>'
+    : '<br><span class="muted">Belum ada tempat yang dicentang.</span>');
+}
+['start','end'].forEach(ctx=>{
+  $(ctx+'List').addEventListener('change', e=>{
+    if (e.target.type!=='radio') return;
+    state[ctx]=e.target.value;
+    state.dests.delete(state.start); state.dests.delete(state.end);
+    renderLists();
+  });
+});
+$('destList').addEventListener('change', e=>{
+  const t=e.target;
+  if (t.dataset.f){                       // ubah jam buka/tutup/singgah
+    const p=getLoc(t.dataset.id); if(!p) return;
+    if (t.dataset.f==='stay'){
+      p.stay=Math.max(0,Math.min(1000,parseInt(t.value)||0)); t.value=p.stay;
+    } else {
+      const v=toMin(t.value,t.dataset.f==='close');
+      if (v==null){ t.value=minToInput(p[t.dataset.f]); return; }
+      p[t.dataset.f]=v;
+    }
+    renderSummary(); return;
+  }
+  if (t.type!=='checkbox') return;
+  if (t.checked){
+    if (state.dests.size>=MAX_DEST){ t.checked=false; $('runStatus').innerHTML=`<span class="err">Maksimal ${MAX_DEST} tempat tujuan.</span>`; return; }
+    state.dests.add(t.value);
+  } else state.dests.delete(t.value);
+  renderSummary();
+});
+$('resetBtn').addEventListener('click',()=>{ buildPool(); renderLists(); });
+document.addEventListener('click', e=>{
+  const d=e.target.closest('button[data-del]');
+  if (d){ deleteLoc(d.dataset.del); return; }
+  const s=e.target.closest('button[data-seg]');
+  if (s){ requestSegment(+s.dataset.seg); return; }
+  const n=e.target.closest('button[data-seg-nav]');
+  if (n){ requestSegment(+n.dataset.segNav); }
+});
+
+/* ---------- Pencarian nama lokasi ---------- */
+async function searchPlaces(q){
+  let out=[];
+  if (googleOK()){
+    try{
+      out = await withTimeout(new Promise((res,rej)=>{
+        new google.maps.Geocoder().geocode({address:q, region:'ID'}, (r,s)=>{
+          if (s==='OK') res(r.map(x=>({name:shortName(x.formatted_address), lat:x.geometry.location.lat(), lng:x.geometry.location.lng(), source:'Google Maps'})));
+          else rej(new Error(s));
+        });
+      }), 6000);
+    }catch(e){ out=[]; }
+  }
+  if (!out.length){
+    const url='https://nominatim.openstreetmap.org/search?format=jsonv2&limit=6&countrycodes=id&accept-language=id&q='+encodeURIComponent(q);
+    const r=await withTimeout(fetch(url),8000);
+    const j=await r.json();
+    out=j.map(x=>({name:shortName(x.display_name), lat:parseFloat(x.lat), lng:parseFloat(x.lon), source:'OpenStreetMap'}));
+  }
+  return out.slice(0,6);
+}
+function bindSearch(ctx){
+  const input=$(ctx+'Search'), btn=$(ctx+'SearchBtn'), out=$(ctx+'Results');
+  let found=[];
+  async function go(){
+    const q=input.value.trim();
+    if (q.length<3){ out.innerHTML='<li class="muted">Ketik minimal 3 huruf.</li>'; return; }
+    out.innerHTML='<li class="muted">Mencari…</li>';
+    try{
+      found=await searchPlaces(q);
+      out.innerHTML = found.length
+        ? found.map((r,i)=>`<li><button type="button" data-i="${i}">${esc(r.name)}<small>${r.lat.toFixed(5)}, ${r.lng.toFixed(5)} · ${r.source}</small></button></li>`).join('')
+        : '<li class="muted">Tempat tidak ditemukan. Coba tambahkan nama kota, mis. “Yogyakarta”.</li>';
+    }catch(e){ out.innerHTML='<li class="err">Pencarian gagal. Periksa koneksi internet lalu coba lagi.</li>'; }
+  }
+  btn.addEventListener('click', go);
+  input.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); go(); }});
+  out.addEventListener('click', e=>{
+    const b=e.target.closest('button[data-i]'); if(!b) return;
+    const loc=addToPool(found[+b.dataset.i]);
+    if (ctx==='dest'){
+      if (loc.id===state.start || loc.id===state.end){ out.innerHTML='<li class="err">Tempat ini sudah menjadi lokasi awal/akhir.</li>'; return; }
+      if (state.dests.size>=MAX_DEST){ out.innerHTML=`<li class="err">Maksimal ${MAX_DEST} tempat tujuan.</li>`; return; }
+      state.dests.add(loc.id);
+    } else {
+      state[ctx]=loc.id; state.dests.delete(state.start); state.dests.delete(state.end);
+    }
+    out.innerHTML=''; input.value=''; renderLists();
+  });
+}
+['start','end','dest'].forEach(bindSearch);
+buildPool();
+renderLists();
+updateBadge();
+
+/* ============================================================
+   MATRIKS JARAK & WAKTU
+   ============================================================ */
+async function googleMatrix(points){
+  const N=points.length;
+  if (!googleOK() || !google.maps.DistanceMatrixService) throw new Error('Google tidak tersedia');
+  if (N>25) throw new Error('Terlalu banyak titik');
+  const svc=new google.maps.DistanceMatrixService();
+  const ll=points.map(p=>new google.maps.LatLng(p.lat,p.lng));
+  const dist=zeros(N), time=zeros(N);
+  let ok=0, est=0;
+  const k=Math.max(1,Math.floor(100/N));      // batas 100 elemen per permintaan
+  for (let i=0;i<N;i+=k){
+    const origins=ll.slice(i,i+k);
+    const resp=await withTimeout(new Promise((res,rej)=>{
+      svc.getDistanceMatrix({origins, destinations:ll, travelMode:google.maps.TravelMode.DRIVING, unitSystem:google.maps.UnitSystem.METRIC},
+        (r,s)=> s==='OK' ? res(r) : rej(new Error(s)));
+    }), 10000, 'Distance Matrix timeout');
+    resp.rows.forEach((row,ri)=>row.elements.forEach((el,j)=>{
+      const a=i+ri;
+      if (a===j) return;
+      if (el.status==='OK'){ dist[a][j]=el.distance.value/1000; time[a][j]=el.duration.value/60; ok++; }
+      else { const e=estimate(points[a],points[j]); dist[a][j]=e.dist; time[a][j]=e.time; est++; }
+    }));
+    if (i+k<N) await sleep(500);
+  }
+  if (ok===0) throw new Error('Semua elemen gagal');
+  return {dist,time,source:'google',note: est? `Google Distance Matrix (jarak dan waktu tempuh nyata). ${est} pasangan lokasi tidak punya rute, jadi diperkirakan.` : 'Google Distance Matrix (jarak dan waktu tempuh nyata dengan mobil).'};
+}
+async function osrmMatrix(points){
+  const coords=points.map(p=>p.lng+','+p.lat).join(';');
+  const r=await withTimeout(fetch(`https://router.project-osrm.org/table/v1/driving/${coords}?annotations=distance,duration`),15000,'OSRM timeout');
+  const j=await r.json();
+  if (j.code!=='Ok') throw new Error('OSRM: '+j.code);
+  const N=points.length, dist=zeros(N), time=zeros(N);
+  for (let a=0;a<N;a++) for (let b=0;b<N;b++){
+    if (a===b) continue;
+    const d=j.distances[a][b], t=j.durations[a][b];
+    if (d==null||t==null){ const e=estimate(points[a],points[b]); dist[a][b]=e.dist; time[a][b]=e.time; }
+    else { dist[a][b]=d/1000; time[a][b]=t/60; }
+  }
+  return {dist,time,source:'osrm',note:'OSRM / OpenStreetMap (jarak dan waktu tempuh mengikuti jaringan jalan nyata dengan mobil, tanpa data kemacetan).'};
+}
+function estimateMatrix(points){
+  const N=points.length, dist=zeros(N), time=zeros(N);
+  for (let a=0;a<N;a++) for (let b=0;b<N;b++){ if(a===b) continue; const e=estimate(points[a],points[b]); dist[a][b]=e.dist; time[a][b]=e.time; }
+  return {dist,time,source:'estimasi',note:'Estimasi: jarak garis lurus × 1,35 (faktor kelokan jalan), kecepatan rata-rata 20–40 km/jam. Kurang akurat dibanding data jalan nyata.'};
+}
+async function getMatrices(points){
+  try{ return await googleMatrix(points); }catch(e){ console.warn('Google matrix gagal:',e.message); }
+  try{ return await osrmMatrix(points); }catch(e){ console.warn('OSRM gagal:',e.message); }
+  return estimateMatrix(points);
+}
+
+/* ============================================================
+   ALGORITMA GENETIKA (dengan time windows)
+   ============================================================ */
+const rnd = n => Math.floor(Math.random()*n);
+function shuffle(a){ const b=a.slice(); for(let i=b.length-1;i>0;i--){ const j=rnd(i+1); [b[i],b[j]]=[b[j],b[i]]; } return b; }
+
+function makeProblem(sIdx,eIdx,destIdx,M,points,startMin){
+  const N=M.dist.length;
+  let sum=0,cnt=0;
+  for (let a=0;a<N;a++) for (let b=0;b<N;b++) if (a!==b){ sum+=M.dist[a][b]*M.time[a][b]; cnt++; }
+  const avgC = cnt ? Math.max(sum/cnt,1) : 1;
+  const LATE = avgC*5, WAIT = avgC*0.02;
+
+  function compute(perm, wantSched){
+    const route=[sIdx,...perm,eIdx];
+    let clock=startMin, d=0,t=0,travel=0,late=0,wait=0,stay=0;
+    const sched = wantSched ? [{idx:sIdx,arrive:clock,wait:0,begin:clock,stay:0,leave:clock,late:0}] : null;
+    for (let i=1;i<route.length;i++){
+      const a=route[i-1], b=route[i];
+      const dd=M.dist[a][b], tt=M.time[a][b];
+      d+=dd; t+=tt; travel+=dd*tt;
+      const loc=points[b];
+      const arrive=clock+tt;
+      const begin=Math.max(arrive,loc.open);
+      const w=begin-arrive;
+      const st=(i===route.length-1)?0:loc.stay;
+      const end=begin+st;
+      const lt=Math.max(0,end-loc.close);
+      wait+=w; stay+=st; late+=lt; clock=end;
+      if (sched) sched.push({idx:b,arrive,wait:w,begin,stay:st,leave:end,late:lt});
+    }
+    const c=travel+WAIT*wait+LATE*late;
+    return {d,t,travel,wait,stay,late,finish:clock,c,sched};
+  }
+  const cache=new Map();
+  let evalCount=0;
+  function stats(perm){
+    const key=perm.join(',');
+    let v=cache.get(key);
+    if (v) return v;
+    v=compute(perm,false); evalCount++;
+    if (cache.size<200000) cache.set(key,v);
+    return v;
+  }
+  return {stats, detail:p=>compute(p,true), cost:p=>compute(p,false).c, route:p=>[sIdx,...p,eIdx], destIdx, evals:()=>evalCount};
+}
+function orderCrossover(p1,p2){
+  const n=p1.length;
+  let a=rnd(n), b=rnd(n); if (a>b) [a,b]=[b,a];
+  const child=Array(n).fill(null), used=new Set();
+  for (let i=a;i<=b;i++){ child[i]=p1[i]; used.add(p1[i]); }
+  let pos=(b+1)%n;
+  for (let k=0;k<n;k++){
+    const g=p2[(b+1+k)%n];
+    if (!used.has(g)){ child[pos]=g; pos=(pos+1)%n; }
+  }
+  return child;
+}
+function mutate(ind){
+  const c=ind.slice(), n=c.length;
+  let i=rnd(n), j=rnd(n); if (i===j) j=(j+1)%n;
+  if (Math.random()<0.5){ [c[i],c[j]]=[c[j],c[i]]; }               // swap
+  else { if(i>j)[i,j]=[j,i]; const seg=c.slice(i,j+1).reverse(); c.splice(i,seg.length,...seg); } // inversi
+  return c;
+}
+function runGA(P,params){
+  const {destIdx}=P;
+  const n=destIdx.length;
+  const maxPerm = n<=12 ? Number(factorial(n)) : Infinity;
+  const popSize=Math.min(params.pop, maxPerm);
+  let pop=[]; const seen=new Set(); let tries=0;
+  while (pop.length<popSize && tries<popSize*50){
+    const ind=shuffle(destIdx), key=ind.join(',');
+    tries++;
+    if (!seen.has(key)){ seen.add(key); pop.push(ind); }
+  }
+  const initial=pop.slice(0,10).map(x=>x.slice());
+  const history=[], improvements=[];
+  let bestEver=null;
+  const elite=Math.min(2,pop.length);
+  const tournament=()=>{
+    let best=null;
+    for (let i=0;i<3;i++){ const c=pop[rnd(pop.length)]; if(!best||P.stats(c).c<P.stats(best).c) best=c; }
+    return best;
+  };
+  for (let g=0; g<=params.gen; g++){
+    pop.sort((a,b)=>P.stats(a).c-P.stats(b).c);
+    const bc=P.stats(pop[0]).c;
+    const avg=pop.reduce((s,x)=>s+P.stats(x).c,0)/pop.length;
+    history.push({g,best:bc,avg});
+    if (!bestEver || bc<bestEver.c-1e-9){
+      bestEver={perm:pop[0].slice(),c:bc};
+      improvements.push({g,perm:pop[0].slice(),...P.stats(pop[0])});
+    }
+    if (g===params.gen) break;
+    const next=pop.slice(0,elite).map(x=>x.slice());
+    let guard=0;
+    while (next.length<pop.length && guard++<pop.length*20){
+      const p1=tournament(), p2=tournament();
+      let child = Math.random()<params.cx ? orderCrossover(p1,p2) : p1.slice();
+      if (Math.random()<params.mut) child=mutate(child);
+      next.push(child);
+    }
+    while (next.length<pop.length) next.push(shuffle(destIdx));
+    pop=next;
+  }
+  return {initial,history,improvements,best:bestEver,popSize};
+}
+function bruteForce(P){
+  const a=P.destIdx.slice(); let best=Infinity, bp=null;
+  (function rec(k){
+    if (k===a.length){ const c=P.cost(a); if(c<best){best=c;bp=a.slice();} return; }
+    for (let i=k;i<a.length;i++){ [a[k],a[i]]=[a[i],a[k]]; rec(k+1); [a[k],a[i]]=[a[i],a[k]]; }
+  })(0);
+  return {perm:bp,c:best};
+}
+
+/* ============================================================
+   TAMPILAN HASIL
+   ============================================================ */
+let lastHistory=null, lastDraw=null;
+
+function matrixTable(title, M, labels, fmt, open){
+  const head='<tr><th></th>'+labels.map(l=>`<th class="num" title="${esc(l.full)}">${esc(l.short)}</th>`).join('')+'</tr>';
+  const body=M.map((row,i)=>`<tr><th title="${esc(labels[i].full)}">${esc(labels[i].short)}</th>`+row.map((v,j)=>`<td class="num">${i===j?'–':fmt(v)}</td>`).join('')+'</tr>').join('');
+  return `<details ${open?'open':''}><summary>${title}</summary><div class="tablewrap"><table>${head}${body}</table></div></details>`;
+}
+
+function renderAll(ctx){
+  const {points,labelOf,nameOf,M,C,ga,P,n,params,brute,startMin,warnNotes}=ctx;
+  $('output').hidden=false;
+
+  /* ruang pencarian */
+  const total=factorial(n);
+  const evals=P.evals();
+  const pct = total>0n ? Math.min(100,Number(evals)/Number(total)*100) : 0;
+  $('spaceInfo').innerHTML = `
+    <p class="lead" style="margin-bottom:10px">Dengan lokasi awal dan akhir tetap serta <b>n = ${n}</b> tempat tujuan, jumlah urutan kunjungan yang mungkin adalah <b>n! = ${total.toLocaleString('id-ID')}</b>. Jumlah ini naik sangat cepat: 10 tempat ≈ 3,6 juta rute, 15 tempat ≈ 1,3 triliun rute. Jika awal dan akhir boleh ditentukan sendiri, ruang pencarian menjadi lebih besar lagi, sehingga mencoba semua rute (brute force) tidak realistis.</p>
+    <div class="stats">
+      <div class="stat"><b>${total.toLocaleString('id-ID')}</b><span>kemungkinan rute</span></div>
+      <div class="stat"><b>${f0(evals)}</b><span>evaluasi rute oleh GA (populasi ${ga.popSize} × ${params.gen} generasi; rute yang sudah pernah dihitung tidak dihitung ulang)</span></div>
+      <div class="stat"><b>${pct<0.01?'< 0,01':f2(pct)}%</b><span>dari seluruh ruang pencarian</span></div>
+    </div>`;
+
+  /* matriks */
+  const labels=points.map(p=>({short:shortLabel(p.name), full:p.name}));
+  $('matrixSource').textContent='Sumber data: '+M.note;
+  $('matrices').innerHTML =
+    matrixTable('Matriks jarak (km)', M.dist, labels, v=>f2(v), false) +
+    matrixTable('Matriks waktu tempuh (menit)', M.time, labels, v=>f1(v), false) +
+    matrixTable('Matriks biaya = jarak × waktu (km·menit)', C, labels, v=>f0(v), true);
+
+  /* legend + populasi awal */
+  const chip=(idx)=>{
+    const l=labelOf(idx);
+    const cls = l==='S'||l==='S/E' ? 's' : l==='E' ? 'e' : '';
+    return `<span class="pill ${cls}" title="${esc(nameOf(idx))}">${l}</span>`;
+  };
+  const routeHtml=route=>route.map(chip).join('<span class="arrow">→</span>');
+  $('legend').innerHTML = points.map((p,i)=>{
+    if (!(i===ctx.sIdx||i===ctx.eIdx||ctx.destIdx.includes(i))) return '';
+    return `<span>${chip(i)} ${esc(p.name)}</span>`;
+  }).join('');
+  const rows=ga.initial.map((perm,i)=>{
+    const s=P.stats(perm);
+    return `<tr><td>${i+1}</td><td class="route">${routeHtml(P.route(perm))}</td><td class="num">${f2(s.d)}</td><td class="num">${fmtTime(s.t)}</td><td class="num">${fmtClock(s.finish)}</td><td class="num ${s.late>0?'bad':''}">${s.late>0?fmtDur(s.late):'0'}</td><td class="num">${f0(s.c)}</td><td class="num">${(1/s.c).toExponential(3).replace('.',',')}</td></tr>`;
+  }).join('');
+  $('popTable').innerHTML=`<tr><th>#</th><th>Kromosom (urutan kunjungan)</th><th class="num">Jarak (km)</th><th class="num">Waktu tempuh</th><th class="num">Selesai</th><th class="num">Terlambat</th><th class="num">Biaya total</th><th class="num">Fitness</th></tr>${rows}`;
+
+  /* riwayat perbaikan */
+  $('histTable').innerHTML=`<tr><th>Generasi</th><th>Rute terbaik saat itu</th><th class="num">Jarak (km)</th><th class="num">Selesai</th><th class="num">Terlambat</th><th class="num">Biaya total</th></tr>`+
+    ga.improvements.map((r,i)=>`<tr class="${i===ga.improvements.length-1?'best':''}"><td>${r.g}</td><td class="route">${routeHtml(P.route(r.perm))}</td><td class="num">${f2(r.d)}</td><td class="num">${fmtClock(r.finish)}</td><td class="num ${r.late>0?'bad':''}">${r.late>0?fmtDur(r.late):'0'}</td><td class="num">${f0(r.c)}</td></tr>`).join('');
+  lastHistory=ga.history; drawChart(lastHistory);
+
+  /* solusi akhir */
+  const best=P.detail(ga.best.perm);
+  const sc=best.sched;
+  $('finalStats').innerHTML=`
+    <div class="stat"><b>${f2(best.d)} km</b><span>total jarak</span></div>
+    <div class="stat"><b>${fmtTime(best.t)}</b><span>total waktu di jalan</span></div>
+    <div class="stat"><b>${fmtDur(best.stay+best.wait)}</b><span>singgah ${fmtDur(best.stay)} + menunggu buka ${fmtDur(best.wait)}</span></div>
+    <div class="stat"><b>${fmtClock(best.finish)}</b><span>tiba di lokasi akhir (berangkat ${fmtClock(startMin)}, total ${fmtDur(best.finish-startMin)})</span></div>
+    <div class="stat"><b>${f0(best.c)}</b><span>biaya total (perjalanan ${f0(best.travel)} + penalti)</span></div>
+    <div class="stat"><b>generasi ${ga.improvements[ga.improvements.length-1].g}</b><span>solusi terbaik ditemukan</span></div>`;
+
+  const lateList=sc.filter(s=>s.late>0).map(s=>`${esc(points[s.idx].name)} (kelewat ${fmtDur(s.late)})`);
+  $('timeNote').innerHTML = (warnNotes.length ? `<div class="note">${warnNotes.map(esc).join('<br>')}</div>` : '') +
+    (lateList.length
+      ? `<div class="note warn"><b>Belum semua jam buka-tutup terpenuhi.</b> Kunjungan yang melewati jam tutup: ${lateList.join(', ')}. Coba majukan jam berangkat, kurangi lama singgah, atau hapus/hilangkan centang tempat tersebut.</div>`
+      : `<div class="note good"><b>Semua kunjungan selesai dalam jam buka.</b> Waktu tunggu muncul bila tiba sebelum tempat buka.</div>`);
+
+  if (brute){
+    const diff=(ga.best.c-brute.c)/brute.c*100;
+    $('bruteInfo').innerHTML = `<div class="note">Verifikasi: karena tujuannya hanya ${n} tempat, semua ${total.toLocaleString('id-ID')} rute juga dicoba satu per satu. Biaya total optimal sebenarnya ${f0(brute.c)}. ${diff<1e-6 ? '<b>Algoritma genetika menemukan solusi optimal.</b>' : `Algoritma genetika berbeda ${f2(diff)}% dari optimal. Coba perbesar populasi atau jumlah generasi.`}</div>`;
+  } else {
+    $('bruteInfo').innerHTML=`<div class="note">Dengan ${n} tempat tujuan, mencoba semua rute terlalu lama, sehingga solusi ini tidak bisa diverifikasi dengan brute force. Itulah gunanya algoritma genetika.</div>`;
+  }
+
+  let td=0, tt=0;
+  const last=sc.length-1;
+  const trs=sc.map((s,i)=>{
+    const p=points[s.idx];
+    let dseg=0,tseg=0;
+    if (i>0){ const a=sc[i-1].idx; dseg=M.dist[a][s.idx]; tseg=M.time[a][s.idx]; td+=dseg; tt+=tseg; }
+    const status = i===0 ? '–' : s.late>0 ? `<span class="bad">Terlambat ${fmtDur(s.late)}</span>` : s.wait>0 ? `<span class="ok">Tepat waktu</span> <span class="muted">(menunggu)</span>` : '<span class="ok">Tepat waktu</span>';
+    return `<tr><td>${i+1}</td><td>${esc(p.name)}${i===0?' <span class="muted">(awal)</span>':i===last?' <span class="muted">(akhir)</span>':''}</td>
+      <td>${i===0?'–':fmtWindow(p)}</td>
+      <td class="num">${i===0?'–':fmtClock(s.arrive)}</td>
+      <td class="num">${i===0?'–':fmtDur(s.wait)}</td>
+      <td class="num">${i===0||i===last?'–':fmtDur(s.stay)}</td>
+      <td class="num">${i===last?'–':fmtClock(s.leave)}</td>
+      <td class="num">${i?f2(dseg):'–'}</td><td class="num">${i?fmtTime(tseg):'–'}</td>
+      <td>${status}</td>
+      <td>${i>0?`<button class="btn ghost sm" type="button" data-seg="${i-1}">Lihat rute</button>`:''}</td></tr>`;
+  }).join('');
+  $('finalTable').innerHTML=`<tr><th>No</th><th>Lokasi</th><th>Buka–tutup</th><th class="num">Tiba</th><th class="num">Tunggu</th><th class="num">Singgah</th><th class="num">Berangkat</th><th class="num">Jarak ruas (km)</th><th class="num">Waktu di jalan</th><th>Status</th><th>Rute</th></tr>${trs}
+    <tr class="total"><td></td><td>Total</td><td></td><td></td><td class="num">${fmtDur(best.wait)}</td><td class="num">${fmtDur(best.stay)}</td><td></td><td class="num">${f2(td)}</td><td class="num">${fmtTime(tt)}</td><td></td><td></td></tr>`;
+
+  /* peta & rute */
+  const routePts=sc.map(s=>points[s.idx]);
+  const segInfo=routePts.slice(0,-1).map((p,i)=>({
+    from:p, to:routePts[i+1],
+    dist:M.dist[sc[i].idx][sc[i+1].idx], time:M.time[sc[i].idx][sc[i+1].idx],
+    depart:sc[i].leave, arrive:sc[i+1].arrive
+  }));
+  routePts.forEach((p,i)=>{ p._arrive = i? sc[i].arrive : null; });
+  drawRoute(routePts, segInfo);
+}
+
+/* ---------- grafik ---------- */
+function drawChart(hist){
+  const cv=$('chart'); if(!cv||!hist) return;
+  const dpr=window.devicePixelRatio||1, W=cv.clientWidth, H=260;
+  cv.width=W*dpr; cv.height=H*dpr;
+  const c=cv.getContext('2d'); c.setTransform(dpr,0,0,dpr,0,0); c.clearRect(0,0,W,H);
+  const css=getComputedStyle(document.documentElement);
+  const ink=css.getPropertyValue('--muted').trim(), line=css.getPropertyValue('--line').trim(), amber=css.getPropertyValue('--amber').trim();
+  const L=64,R=14,T=14,B=34;
+  const all=hist.flatMap(h=>[h.best,h.avg]);
+  let lo=Math.min(...all), hi=Math.max(...all); if(hi-lo<1e-9){hi=lo+1;}
+  const pad=(hi-lo)*0.06; lo-=pad; hi+=pad;
+  const X=g=>L+(W-L-R)*g/Math.max(1,hist.length-1), Y=v=>T+(H-T-B)*(1-(v-lo)/(hi-lo));
+  c.font='12px '+getComputedStyle(document.body).fontFamily; c.fillStyle=ink; c.strokeStyle=line; c.lineWidth=1;
+  for (let i=0;i<=4;i++){
+    const v=lo+(hi-lo)*i/4, y=Y(v);
+    c.beginPath(); c.moveTo(L,y); c.lineTo(W-R,y); c.stroke();
+    c.textAlign='right'; c.fillText(f0(v),L-8,y+4);
+  }
+  c.textAlign='center';
+  [0,0.5,1].forEach(p=>{ const g=Math.round((hist.length-1)*p); c.fillText(String(g),X(g),H-12); });
+  c.fillText('generasi',(L+W-R)/2,H-1);
+  const plot=(key,color,w)=>{ c.beginPath(); hist.forEach((h,i)=>{ i?c.lineTo(X(i),Y(h[key])):c.moveTo(X(i),Y(h[key])); }); c.strokeStyle=color; c.lineWidth=w; c.stroke(); };
+  plot('avg',ink,1.5); plot('best',amber,3);
+}
+window.addEventListener('resize',()=>drawChart(lastHistory));
+
+/* ============================================================
+   PETA + ROUTING PER RUAS
+   ============================================================ */
+let mapObj=null, mapKind=null, layers=[];
+let segData=[], segObjs=[], selSeg=-1, pendingSel=null, drawToken=0;
+const COL='#2f49d1', COL_SEL='#e08a00';
+
+function ensureMap(){
+  if (mapObj) return;
+  const el=$('map');
+  if (googleOK()){
+    mapKind='google';
+    mapObj=new google.maps.Map(el,{center:{lat:-7.8,lng:110.38},zoom:11,mapTypeControl:false,streetViewControl:false});
+  } else {
+    mapKind='leaflet';
+    mapObj=L.map(el).setView([-7.8,110.38],11);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap',maxZoom:19}).addTo(mapObj);
+  }
+  $('mapNote').textContent = (mapKind==='google' ? 'Peta: Google Maps.' : 'Peta: OpenStreetMap (Google Maps tidak tersedia).') + ' Klik garis rute untuk melihat detail ruas di bawah peta.';
+}
+function clearMap(){
+  layers.forEach(l=>{ try{ mapKind==='google' ? l.setMap(null) : l.remove(); }catch(e){} });
+  layers=[]; segObjs=[];
+}
+
+/* ----- sumber jalur per ruas: Google Directions -> OSRM -> garis lurus ----- */
+function stripHtml(h){ return new DOMParser().parseFromString(h,'text/html').body.textContent || ''; }
+async function googleSegments(route){
+  if (!googleOK() || !google.maps.DirectionsService) throw new Error('Directions tidak tersedia');
+  const svc=new google.maps.DirectionsService(), out=[];
+  for (let i=0;i<route.length-1;i++){
+    const a=route[i], b=route[i+1];
+    const res=await withTimeout(new Promise((ok,no)=>{
+      svc.route({origin:{lat:a.lat,lng:a.lng},destination:{lat:b.lat,lng:b.lng},travelMode:google.maps.TravelMode.DRIVING},
+        (r,s)=>s==='OK'?ok(r):no(new Error(s)));
+    }),10000,'Directions timeout');
+    const rt=res.routes[0], leg=rt.legs[0];
+    out.push({
+      src:'Google Directions',
+      path:rt.overview_path.map(p=>({lat:p.lat(),lng:p.lng()})),
+      steps:leg.steps.map(s=>({text:stripHtml(s.instructions),dist:s.distance.value,dur:s.duration.value})),
+      dist:leg.distance.value, dur:leg.duration.value
+    });
+    if (i<route.length-2) await sleep(200);
+  }
+  return out;
+}
+function osrmText(s){
+  const m=s.maneuver||{}, nm=s.name?' ke '+s.name:'';
+  const dirs={'left':'kiri','right':'kanan','slight left':'serong kiri','slight right':'serong kanan','sharp left':'tajam ke kiri','sharp right':'tajam ke kanan','straight':'lurus','uturn':'putar balik'};
+  const dr=dirs[m.modifier]||'';
+  switch(m.type){
+    case 'depart': return 'Mulai perjalanan'+(s.name?' di '+s.name:'');
+    case 'arrive': return 'Tiba di tujuan';
+    case 'turn': return dr==='lurus' ? 'Lurus'+nm : dr==='putar balik' ? 'Putar balik'+nm : 'Belok '+dr+nm;
+    case 'new name': case 'continue': return 'Lanjut'+(dr&&dr!=='lurus'?' '+dr:'')+nm;
+    case 'merge': return 'Gabung'+nm;
+    case 'on ramp': return 'Masuk jalur'+nm;
+    case 'off ramp': return 'Keluar jalur'+nm;
+    case 'fork': return 'Ambil percabangan '+dr+nm;
+    case 'end of road': return 'Di ujung jalan, belok '+dr+nm;
+    case 'roundabout': case 'rotary': return 'Masuk bundaran'+(m.exit?', ambil jalan keluar ke-'+m.exit:'')+nm;
+    case 'roundabout turn': return 'Di bundaran, belok '+dr+nm;
+    default: return 'Lanjut'+nm;
+  }
+}
+async function osrmSegments(route){
+  const coords=route.map(p=>p.lng+','+p.lat).join(';');
+  const r=await withTimeout(fetch(`https://router.project-osrm.org/route/v1/driving/${coords}?overview=false&geometries=geojson&steps=true`),15000,'OSRM route timeout');
+  const j=await r.json();
+  if (j.code!=='Ok') throw new Error('OSRM: '+j.code);
+  return j.routes[0].legs.map(leg=>{
+    const path=[];
+    leg.steps.forEach(s=>s.geometry.coordinates.forEach(([lng,lat])=>{
+      const last=path[path.length-1];
+      if (!last || last.lat!==lat || last.lng!==lng) path.push({lat,lng});
+    }));
+    return {src:'OSRM / OpenStreetMap', path, steps:leg.steps.map(s=>({text:osrmText(s),dist:s.distance,dur:s.duration})), dist:leg.distance, dur:leg.duration};
+  });
+}
+function straightSegments(route){
+  return route.slice(0,-1).map((a,i)=>{
+    const b=route[i+1], e=estimate(a,b);
+    return {src:'garis lurus (rute jalan tidak tersedia)', path:[{lat:a.lat,lng:a.lng},{lat:b.lat,lng:b.lng}], steps:[], dist:e.dist*1000, dur:e.time*60};
+  });
+}
+async function loadSegments(route){
+  try{ return await googleSegments(route); }catch(e){ console.warn('Google Directions gagal:',e.message); }
+  try{ return await osrmSegments(route); }catch(e){ console.warn('OSRM route gagal:',e.message); }
+  return straightSegments(route);
+}
+
+/* ----- gambar rute ----- */
+async function drawRoute(routePts, segInfo){
+  const token=++drawToken;
+  lastDraw={routePts,segInfo};
+  ensureMap(); clearMap();
+  segData=[]; selSeg=-1;
+  renderSegPanel(true);
+
+  if (mapKind==='google'){
+    const bounds=new google.maps.LatLngBounds();
+    routePts.forEach((p,i)=>{
+      const pos={lat:p.lat,lng:p.lng}; bounds.extend(pos);
+      layers.push(new google.maps.Marker({position:pos,map:mapObj,title:(i+1)+'. '+p.name+(i?' (tiba '+fmtClock(p._arrive)+')':''),label:{text:String(i+1),color:'#fff',fontWeight:'700'}}));
+    });
+    mapObj.fitBounds(bounds);
+  } else {
+    routePts.forEach((p,i)=>{
+      const m=L.marker([p.lat,p.lng],{title:(i+1)+'. '+p.name,icon:L.divIcon({className:'',html:`<div class="pin">${i+1}</div>`,iconSize:[26,26],iconAnchor:[13,13]})})
+        .addTo(mapObj).bindPopup(`<b>${i+1}. ${esc(p.name)}</b>${i?'<br>Tiba '+fmtClock(p._arrive):''}`);
+      layers.push(m);
+    });
+    mapObj.fitBounds(routePts.map(p=>[p.lat,p.lng]),{padding:[30,30]});
+    setTimeout(()=>mapObj && mapObj.invalidateSize && mapObj.invalidateSize(),200);
+  }
+
+  const data=await loadSegments(routePts);
+  if (token!==drawToken) return;      // ada gambar ulang yang lebih baru
+  segData=data;
+
+  data.forEach((sg,i)=>{
+    if (mapKind==='google'){
+      const pl=new google.maps.Polyline({map:mapObj,path:sg.path,strokeColor:COL,strokeWeight:5,strokeOpacity:.85,clickable:true,
+        icons:[{icon:{path:google.maps.SymbolPath.FORWARD_CLOSED_ARROW,scale:2.5,strokeColor:COL},offset:'50%'}]});
+      pl.addListener('click',()=>requestSegment(i,false));
+      layers.push(pl); segObjs[i]=pl;
+    } else {
+      const pl=L.polyline(sg.path.map(p=>[p.lat,p.lng]),{color:COL,weight:6,opacity:.85}).addTo(mapObj);
+      pl.on('click',()=>requestSegment(i,false));
+      layers.push(pl); segObjs[i]=pl;
+    }
+  });
+  renderSegPanel(false);
+  if (pendingSel!=null){ const p=pendingSel; pendingSel=null; requestSegment(p,true); }
+}
+function styleSeg(i){
+  const o=segObjs[i]; if(!o) return;
+  const sel=i===selSeg, c=sel?COL_SEL:COL, w=sel?9:5, op=sel?1:(selSeg>=0?.5:.85);
+  if (mapKind==='google'){
+    o.setOptions({strokeColor:c,strokeWeight:w,strokeOpacity:op,zIndex:sel?10:1});
+  } else {
+    o.setStyle({color:c,weight:w,opacity:op}); if(sel) o.bringToFront();
+  }
+}
+function requestSegment(i,fromTable=true){
+  if (!lastDraw || i<0 || i>=lastDraw.segInfo.length) return;
+  if (!segData.length){ pendingSel=i; selSeg=i; renderSegPanel(false); if(fromTable) $('mapCard').scrollIntoView({behavior:'smooth',block:'start'}); return; }
+  selSeg=i;
+  segObjs.forEach((_,k)=>styleSeg(k));
+  const sg=segData[i];
+  if (fromTable && sg){
+    if (mapKind==='google'){ const b=new google.maps.LatLngBounds(); sg.path.forEach(p=>b.extend(p)); mapObj.fitBounds(b); }
+    else mapObj.fitBounds(sg.path.map(p=>[p.lat,p.lng]),{padding:[40,40]});
+  }
+  renderSegPanel(false);
+  if (fromTable) $('mapCard').scrollIntoView({behavior:'smooth',block:'start'});
+  else $('segPanel').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+/* ----- panel detail di bawah peta ----- */
+const gmapsSeg = (a,b) => `https://www.google.com/maps/dir/?api=1&origin=${a.lat},${a.lng}&destination=${b.lat},${b.lng}&travelmode=driving`;
+function gmapsFull(route){
+  const a=route[0], b=route[route.length-1];
+  const wp=route.slice(1,-1).slice(0,9).map(p=>p.lat+','+p.lng).join('|');
+  return `https://www.google.com/maps/dir/?api=1&origin=${a.lat},${a.lng}&destination=${b.lat},${b.lng}&travelmode=driving`+(wp?'&waypoints='+encodeURIComponent(wp):'');
+}
+function renderSegPanel(loading){
+  const el=$('segPanel');
+  if (!lastDraw){ el.innerHTML=''; return; }
+  const {routePts,segInfo}=lastDraw;
+  const nav=segInfo.map((s,i)=>`<button type="button" class="chipbtn ${i===selSeg?'on':''}" data-seg-nav="${i}" title="${esc(s.from.name)} → ${esc(s.to.name)}">${i+1} → ${i+2}</button>`).join('');
+  const truncated = routePts.length-2>9 ? '<span class="muted">Google Maps hanya menerima maksimal 9 titik singgah lewat tautan, jadi sisanya dipotong. Buka per ruas untuk rute lengkap.</span>' : '';
+  let body;
+  if (selSeg<0){
+    body=`<p class="muted">${loading?'Memuat jalur rute…':'Klik garis rute di peta, tombol nomor di atas, atau tombol “Lihat rute” pada tabel untuk melihat detail ruas dan petunjuk arah.'}</p>`;
+  } else {
+    const info=segInfo[selSeg], sg=segData[selSeg];
+    let steps;
+    if (!sg) steps='<p class="muted">Memuat petunjuk arah…</p>';
+    else if (!sg.steps.length) steps=`<p class="muted">Petunjuk arah tidak tersedia (${esc(sg.src)}). Gunakan tombol Google Maps di atas.</p>`;
+    else steps=`<p class="muted">Sumber jalur: ${esc(sg.src)}. Jarak jalur ${f2(sg.dist/1000)} km, perkiraan ${fmtTime(sg.dur/60)}.</p><ol class="steps">${sg.steps.map(s=>`<li>${esc(s.text)} <span class="muted">(${fmtDist(s.dist)})</span></li>`).join('')}</ol>`;
+    body=`<h3>Ruas ${selSeg+1}: ${esc(info.from.name)} → ${esc(info.to.name)}</h3>
+      <div class="stats">
+        <div class="stat"><b>${f2(info.dist)} km</b><span>jarak (matriks)</span></div>
+        <div class="stat"><b>${fmtTime(info.time)}</b><span>waktu tempuh (matriks)</span></div>
+        <div class="stat"><b>${fmtClock(info.depart)}</b><span>berangkat</span></div>
+        <div class="stat"><b>${fmtClock(info.arrive)}</b><span>tiba</span></div>
+      </div>
+      <div class="btnrow"><a class="btn" href="${gmapsSeg(info.from,info.to)}" target="_blank" rel="noopener">Buka ruas ini di Google Maps</a></div>
+      ${steps}`;
+  }
+  el.innerHTML=`<div class="btnrow"><a class="btn ghost" href="${gmapsFull(routePts)}" target="_blank" rel="noopener">Buka seluruh rute di Google Maps</a></div>${truncated}
+    <div class="segnav" role="group" aria-label="Pilih ruas">${nav}</div>${body}`;
+}
+
+/* ============================================================
+   TOMBOL HITUNG
+   ============================================================ */
+$('runBtn').addEventListener('click', async ()=>{
+  const status=$('runStatus'), btn=$('runBtn');
+  if (!state.start || !state.end){ status.innerHTML='<span class="err">Pilih lokasi awal dan akhir.</span>'; return; }
+  if (state.dests.size<2){ status.innerHTML='<span class="err">Centang minimal 2 tempat tujuan.</span>'; return; }
+  const startMin=toMin($('startTime').value,false);
+  if (startMin==null){ status.innerHTML='<span class="err">Isi jam berangkat.</span>'; return; }
+  const params={
+    pop:Math.max(10,Math.min(500,parseInt($('pPop').value)||50)),
+    gen:Math.max(10,Math.min(2000,parseInt($('pGen').value)||150)),
+    cx:Math.max(0,Math.min(1,parseFloat($('pCx').value))),
+    mut:Math.max(0,Math.min(1,parseFloat($('pMut').value)))
+  };
+  if (isNaN(params.cx)) params.cx=0.85;
+  if (isNaN(params.mut)) params.mut=0.15;
+
+  // validasi jam buka-tutup
+  const checkLocs=[...state.dests,state.end].map(getLoc);
+  const badWin=checkLocs.find(p=>p.close<=p.open);
+  if (badWin){ status.innerHTML=`<span class="err">Jam tutup ${esc(badWin.name)} harus setelah jam buka.</span>`; return; }
+  const warnNotes=[...new Set(checkLocs)].filter(p=>p.id!==state.end || state.dests.has(p.id)).filter(p=>p.stay>p.close-p.open)
+    .map(p=>`Perhatian: lama singgah ${p.name} (${p.stay} mnt) lebih panjang dari jam bukanya (${fmtWindow(p)}), jadi pasti terlambat.`);
+
+  btn.disabled=true;
+  status.textContent='Mengambil jarak dan waktu tempuh…';
+  try{
+    const ids=[state.start,state.end,...state.dests];
+    const uniq=[...new Set(ids)];
+    const idx=new Map(uniq.map((id,i)=>[id,i]));
+    const points=uniq.map(getLoc).map(p=>({...p}));   // salinan agar hasil tidak berubah saat daftar diedit
+    const M=await getMatrices(points);
+    const C=M.dist.map((row,i)=>row.map((d,j)=>d*M.time[i][j]));
+
+    status.textContent='Menjalankan algoritma genetika…';
+    await sleep(30);
+    const sIdx=idx.get(state.start), eIdx=idx.get(state.end);
+    const destIdx=[...state.dests].map(id=>idx.get(id));
+    const n=destIdx.length;
+    const P=makeProblem(sIdx,eIdx,destIdx,M,points,startMin);
+    const ga=runGA(P,params);
+    const evalsGA=P.evals();
+    const brute = n<=9 ? bruteForce(P) : null;
+
+    const dLabel=new Map(destIdx.map((d,k)=>[d,'D'+(k+1)]));
+    const labelOf=i=> i===sIdx&&i===eIdx ? 'S/E' : i===sIdx ? 'S' : i===eIdx ? 'E' : dLabel.get(i);
+    const nameOf=i=>points[i].name;
+
+    renderAll({points,labelOf,nameOf,M,C,ga,P,n,params,brute,sIdx,eIdx,destIdx,startMin,warnNotes});
+    status.textContent='Selesai.';
+    $('output').scrollIntoView({behavior:'smooth',block:'start'});
+  }catch(e){
+    console.error(e);
+    status.innerHTML='<span class="err">Terjadi kesalahan: '+esc(e.message)+'</span>';
+  }finally{
+    btn.disabled=false;
+  }
+});
+</script>
+</body>
+</html>
